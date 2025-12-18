@@ -5,45 +5,57 @@ Index.html
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Wagenliste PWA</title>
+    <title>Wagenliste</title>
     <link rel="manifest" href="manifest.json">
     <style>
-        :root { --primary: #007aff; --bg: #f2f2f7; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 100px; }
-        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 15px; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
-        button { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 8px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; }
-        .secondary { background: #34c759; margin-top: 10px; }
-        table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px; font-size: 10px; }
-        th, td { border: 1px solid black; padding: 4px; text-align: center; }
+        /* EXAKTES DESIGN AUS DEINEM SCRIPT */
+        body { font-family: sans-serif; margin: 20px; font-size: 12px; background: #f0f0f2; } 
+        .no-print { background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h1 { font-size: 18px; margin-top: 10px; border-bottom: 2px solid #333; padding-bottom: 5px; }
+        h2 { font-size: 14px; margin-top: 20px; border-bottom: 1px dashed #ccc; padding-bottom: 5px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background: white; } 
+        .wagonlist th, .wagonlist td { border: 1px solid #000; padding: 4px; text-align: center; font-size: 9px; }
+        .wagonlist th { background-color: #e6e6e6; }
+        .summary td { font-weight: bold; background-color: #f9f9f9; }
+        .header-info td { border: none; padding: 2px 0; font-size: 11px; text-align: left; }
+        .bh-p { background-color: #c9e6ff; }
+        .bh-g { background-color: #ffc9c9; }
+        input, select { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
+        button { background: #007aff; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-size: 14px; cursor: pointer; margin-top: 10px; }
         .hidden { display: none; }
-        @media print { .no-print { display: none; } body { background: white; padding: 0; } }
+        @media print { .no-print { display: none; } body { background: white; margin: 0; } }
     </style>
 </head>
 <body>
 
-<div id="view-meta" class="card no-print">
-    <h2>Zug-Kopfdaten</h2>
+<div id="view-meta" class="no-print">
+    <h1>Wagenliste: Kopfdaten</h1>
     <input type="text" id="m_zug" placeholder="Zugnummer">
-    <input type="text" id="m_stelle" placeholder="Betriebsstelle">
-    <input type="text" id="m_erfasser" placeholder="Erfasser" value="DEIN NAME">
+    <input type="text" id="m_stelle" placeholder="ab Zugnummer/Betriebsstelle">
+    <input type="text" id="m_erfasser" placeholder="Name (Erfasser)" value="DEIN NAME">
     <select id="m_fahrplan">
-        <option value="">Fahrplan wählen (P/G)</option>
-        <option value="P">P (Personenzug-Modus)</option>
-        <option value="G">G (Güterzug-Modus)</option>
+        <option value="">Fahrplan (P/G) wählen...</option>
+        <option value="P">P</option>
+        <option value="G">G</option>
     </select>
-    <button onclick="showWagons()">Wagenerfassung starten</button>
+    <button onclick="showWagons()">Weiter zur Wagenerfassung</button>
 </div>
 
-<div id="view-wagons" class="card no-print hidden">
-    <h3 id="w_index">Wagen 1</h3>
-    <input type="number" id="w_nr" placeholder="Wagennummer (12 Stellen)">
-    <input type="text" id="w_gattung" placeholder="Gattung">
-    <input type="number" step="0.1" id="w_len" placeholder="Länge (z.B. 14.7)">
+<div id="view-wagons" class="no-print hidden">
+    <h1 id="w_index">Wagen 1: Wagennummer</h1>
+    <input type="number" id="w_nr" placeholder="12-stellig (oder leer lassen)">
+    <h2>Zusatzdaten</h2>
+    <input type="text" id="w_gattung" placeholder="Gattungsbuchstabe">
+    <input type="number" step="0.1" id="w_len" placeholder="Länge ü. Puffer (z.B. 14.7)">
+    <input type="number" id="w_lade" placeholder="Ladegewicht (t)">
     <input type="number" id="w_gesamt" placeholder="Gesamtgewicht (t)">
     <input type="number" id="w_bremse" placeholder="Bremsgewicht (t)">
+    <input type="text" id="w_von" placeholder="Versandbahnhof">
+    <input type="text" id="w_nach" placeholder="Bestimmungsbahnhof">
+    <input type="text" id="w_bemerk" placeholder="Bemerkungen">
+    
     <button onclick="addWagon()">Nächster Wagen</button>
-    <button class="secondary" onclick="calculateFinal()">Liste abschließen</button>
+    <button style="background:#34c759;" onclick="calculateFinal()">Abschluss & PDF/Druck</button>
 </div>
 
 <div id="print-area"></div>
@@ -53,9 +65,9 @@ Index.html
     let meta = {};
 
     function showWagons() {
-        meta.zug = document.getElementById('m_zug').value;
-        meta.erfasser = document.getElementById('m_erfasser').value;
-        meta.stelle = document.getElementById('m_stelle').value;
+        meta.zug = document.getElementById('m_zug').value || "N/A";
+        meta.erfasser = document.getElementById('m_erfasser').value || "N/A";
+        meta.stelle = document.getElementById('m_stelle').value || "N/A";
         meta.fahrplan = document.getElementById('m_fahrplan').value;
 
         if (!meta.fahrplan) { alert("Bitte Fahrplan P oder G wählen!"); return; }
@@ -64,19 +76,32 @@ Index.html
     }
 
     function addWagon() {
+        let nr = document.getElementById('w_nr').value;
         let w = {
-            nr: document.getElementById('w_nr').value,
+            nr1: nr.substring(0,2), nr2: nr.substring(2,4), nr3: nr.substring(4,8), nr4: nr.substring(8,11), nr5: nr.substring(11,12),
             gattung: document.getElementById('w_gattung').value.toUpperCase(),
-            len: parseFloat(document.getElementById('w_len').value) || 0,
+            len: parseFloat(document.getElementById('w_len').value.replace(',','.')) || 0,
+            lade: Math.floor(parseFloat(document.getElementById('w_lade').value) || 0),
             gesamt: Math.floor(parseFloat(document.getElementById('w_gesamt').value) || 0),
-            bremse: Math.floor(parseFloat(document.getElementById('w_bremse').value) || 0)
+            bremse: Math.floor(parseFloat(document.getElementById('w_bremse').value) || 0),
+            von: document.getElementById('w_von').value.toUpperCase(),
+            nach: document.getElementById('w_nach').value.toUpperCase(),
+            bemerk: document.getElementById('w_bemerk').value
         };
         wagonList.push(w);
+        
+        // Reset Felder für nächsten Wagen
         document.getElementById('w_nr').value = '';
-        document.getElementById('w_index').innerText = "Wagen " + (wagonList.length + 1);
+        document.getElementById('w_gattung').value = '';
+        document.getElementById('w_len').value = '';
+        document.getElementById('w_lade').value = '';
+        document.getElementById('w_gesamt').value = '';
+        document.getElementById('w_bremse').value = '';
+        document.getElementById('w_bemerk').value = '';
+        document.getElementById('w_index').innerText = "Wagen " + (wagonList.length + 1) + ": Wagennummer";
     }
 
-    async function calculateFinal() {
+    function calculateFinal() {
         if (wagonList.length === 0) return;
         
         let totalWeight = wagonList.reduce((sum, w) => sum + w.gesamt, 0);
@@ -84,42 +109,60 @@ Index.html
         let totalBrakeP = wagonList.reduce((sum, w) => sum + w.bremse, 0);
         let totalBrakeG = 0;
 
-        // Logik: Schwerer Güterzug (>= 1200t)
-        if (meta.fahrplan === "P" && totalWeight >= 1200) {
-            let choice = confirm("Schwerer Zug (>= 1200t). 5 Wagen auf G umstellen? (OK = 5 Wagen, Abbrechen = 3 Wagen)");
-            let limit = choice ? 5 : 3;
-            let actual = Math.min(limit, wagonList.length);
-            let shifted = 0;
-            for(let i=0; i<actual; i++) {
-                shifted += wagonList[i].bremse;
+        if (meta.fahrplan === "P") {
+            if (totalWeight >= 1200) {
+                let choice = confirm("Schwerer Zug (>= 1200t). 5 Wagen auf G umstellen? (OK = 5 Wagen, Abbrechen = 3 Wagen)");
+                let limit = choice ? 5 : 3;
+                let actual = Math.min(limit, wagonList.length);
+                let shifted = 0;
+                for(let i=0; i<actual; i++) {
+                    shifted += wagonList[i].bremse;
+                    // In der Liste für die Anzeige anpassen
+                    wagonList[i].bremseG = wagonList[i].bremse;
+                    wagonList[i].bremse = 0;
+                }
+                totalBrakeP -= shifted;
+                let gDed = (totalLen >= 700) ? 0.2875 : 0.25;
+                totalBrakeG = Math.floor(shifted * (1 - gDed));
             }
-            totalBrakeP -= shifted;
-            let gDed = (totalLen >= 700) ? 0.2875 : 0.25;
-            totalBrakeG = Math.floor(shifted * (1 - gDed));
-        }
-
-        // P-Abzüge nach Länge
-        let pDed = (totalLen >= 700) ? 0.19 : (totalLen >= 600 ? 0.10 : (totalLen >= 500 ? 0.05 : 0));
-        totalBrakeP = Math.floor(totalBrakeP * (1 - pDed));
-
-        if (meta.fahrplan === "G") {
+            let pDed = (totalLen >= 700) ? 0.19 : (totalLen >= 600 ? 0.10 : (totalLen >= 500 ? 0.05 : 0));
+            totalBrakeP = Math.floor(totalBrakeP * (1 - pDed));
+        } else {
             totalBrakeG = Math.floor(wagonList.reduce((sum, w) => sum + w.bremse, 0) * (totalLen >= 700 ? 0.95 : 1));
             totalBrakeP = 0;
+            wagonList.forEach(w => { w.bremseG = w.bremse; w.bremse = 0; });
         }
 
-        renderHTML(totalWeight, totalLen, totalBrakeP, totalBrakeG);
+        renderOutput(totalWeight, totalLen, totalBrakeP, totalBrakeG);
     }
 
-    function renderHTML(tw, tl, bp, bg) {
-        let html = `<h1>Wagenliste Zug ${meta.zug}</h1>`;
-        html += `<p>Erfasser: ${meta.erfasser} | Stelle: ${meta.stelle} | Fahrplan: ${meta.fahrplan}</p>`;
-        html += `<table><tr><th>Nr.</th><th>Gattung</th><th>Gewicht</th><th>Bremse</th></tr>`;
-        wagonList.forEach((w, i) => {
-            html += `<tr><td>${i+1}</td><td>${w.gattung}</td><td>${w.gesamt}</td><td>${w.bremse}</td></tr>`;
-        });
-        html += `<tr><td><b>Summe</b></td><td>-</td><td><b>${tw} t</b></td><td><b>P:${bp} G:${bg}</b></td></tr></table>`;
-        html += `<button class="no-print" onclick="window.location.reload()">Neue Liste</button>`;
+    function renderOutput(tw, tl, bp, bg) {
+        let date = new Date().toLocaleDateString("de-DE");
+        let time = new Date().toLocaleTimeString("de-DE", {hour:'2-digit', minute:'2-digit'});
         
+        let html = `
+            <h1>Wagenliste (Zug ${meta.zug})</h1>
+            <table class="header-info">
+                <tr><td><strong>Datum:</strong> ${date}</td><td><strong>Zugnummer:</strong> ${meta.zug}</td><td><strong>ab Stelle:</strong> ${meta.stelle}</td></tr>
+                <tr><td><strong>Zeit:</strong> ${time}</td><td><strong>Erfasser:</strong> ${meta.erfasser}</td><td><strong>Fahrplan:</strong> ${meta.fahrplan}</td></tr>
+            </table>
+            <table class="wagonlist">
+                <tr><th colspan="5">Wagennummer</th><th rowspan="2">Gattung</th><th rowspan="2">Länge</th><th colspan="2">Gewicht</th><th colspan="2">Bremse</th><th rowspan="2">Von/Nach</th></tr>
+                <tr><th>1a</th><th>1b</th><th>1c</th><th>1d</th><th>1e</th><th>Lade</th><th>Gesamt</th><th>P</th><th>G</th></tr>`;
+        
+        wagonList.forEach((w, i) => {
+            html += `<tr>
+                <td>${w.nr1}</td><td>${w.nr2}</td><td>${w.nr3}</td><td>${w.nr4}</td><td>${w.nr5}</td>
+                <td>${w.gattung}</td><td>${w.len.toFixed(1)}</td><td>${w.lade}</td><td>${w.gesamt}</td>
+                <td>${w.bremse || 0}</td><td>${w.bremseG || 0}</td><td>${w.von}/${w.nach}</td>
+            </tr>`;
+        });
+
+        html += `<tr class="summary">
+            <td colspan="6">Summen</td><td>${tl.toFixed(1)}m</td><td>-</td><td>${tw}t</td><td>${bp}t</td><td>${bg}t</td><td>-</td>
+        </tr></table>
+        <button class="no-print" onclick="window.location.reload()">Neue Liste erstellen</button>`;
+
         document.getElementById('view-wagons').classList.add('hidden');
         document.getElementById('print-area').innerHTML = html;
         window.print();
